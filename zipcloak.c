@@ -220,6 +220,7 @@ static ZCONST char *help_info[] = {
 "  -b  --temp-path    use \"path\" for the temporary zip file",
 #endif
 "  -O  --output-file  write output to new zip file",
+"  -p  --password     password",
 "  -q  --quiet        quiet operation, suppress some informational messages",
 "  -h  --help         show this help",
 "  -v  --version      show version info",
@@ -294,6 +295,7 @@ struct option_struct far options[] = {
     {"L",  "license",     o_NO_VALUE,       o_NOT_NEGATABLE, 'L',  "license"},
     {"l",  "",            o_NO_VALUE,       o_NOT_NEGATABLE, 'L',  "license"},
     {"O",  "output-file", o_REQUIRED_VALUE, o_NOT_NEGATABLE, 'O',  "output to new archive"},
+    {"p",  "password",    o_REQUIRED_VALUE, o_NOT_NEGATABLE, 'p',  "password"},
     {"v",  "version",     o_NO_VALUE,       o_NOT_NEGATABLE, 'v',  "version"},
     /* the end of the list */
     {NULL, NULL,          o_NO_VALUE,       o_NOT_NEGATABLE, 0,    NULL} /* end has option_ID = 0 */
@@ -516,6 +518,9 @@ int main(argc, argv)
           }
           free(value);
           break;
+        case 'p':
+          strncpy(passwd, value, sizeof(passwd));
+          break;
         case 'q':   /* Quiet operation, suppress info messages */
           noisy = 0;  break;
         case 'v':   /* Show version info */
@@ -628,20 +633,22 @@ int main(argc, argv)
 #endif
 
     /* Get password */
-    if (getp("Enter password: ", passwd, IZ_PWLEN+1) == NULL)
-        ziperr(ZE_PARMS,
-               "stderr is not a tty (you may never see this message!)");
+    if (!passwd[0]) {
+      if (getp("Enter password: ", passwd, IZ_PWLEN+1) == NULL)
+          ziperr(ZE_PARMS,
+                "stderr is not a tty (you may never see this message!)");
 
-    if (decrypt == 0) {
-        if (getp("Verify password: ", verify, IZ_PWLEN+1) == NULL)
-               ziperr(ZE_PARMS,
-                      "stderr is not a tty (you may never see this message!)");
+      if (decrypt == 0) {
+          if (getp("Verify password: ", verify, IZ_PWLEN+1) == NULL)
+                ziperr(ZE_PARMS,
+                        "stderr is not a tty (you may never see this message!)");
 
-        if (strcmp(passwd, verify))
-               ziperr(ZE_PARMS, "password verification failed");
+          if (strcmp(passwd, verify))
+                ziperr(ZE_PARMS, "password verification failed");
 
-        if (*passwd == '\0')
-               ziperr(ZE_PARMS, "zero length password not allowed");
+          if (*passwd == '\0')
+                ziperr(ZE_PARMS, "zero length password not allowed");
+      }
     }
 
     /* Open input zip file again, copy preamble if any */
