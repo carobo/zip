@@ -667,9 +667,9 @@ int main(argc, argv)
             fflush(stdout);
             if ((res = zipbare(z, passwd)) != ZE_OK)
             {
-                if (res != ZE_MISS) ziperr(res, "was decrypting an entry");
                 printf(" (wrong password--just copying)");
                 fflush(stdout);
+                ziperr(ZE_FORM, "was decrypting an entry");
             }
             putchar('\n');
 
